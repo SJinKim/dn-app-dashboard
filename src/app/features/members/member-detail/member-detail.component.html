@@ -1,0 +1,75 @@
+<div class="p-6 max-w-3xl mx-auto">
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <p-progressSpinner />
+    </div>
+  }
+
+  <!-- Detail card -->
+  @if (!loading() && member()) {
+    <div class="mb-4 flex items-center gap-3">
+      <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()" />
+      <h1 class="text-2xl font-bold text-gray-800">
+        {{ member()!.lastName }}{{ member()!.firstName }}
+        @if (member()!.discriminator) {
+          <span class="text-base text-gray-400 ml-1">({{ member()!.discriminator }})</span>
+        }
+      </h1>
+      <p-tag
+        [value]="statusLabel(member()!.memberStatus)"
+        [severity]="statusSeverity(member()!.memberStatus)"
+        class="ml-2"
+      />
+      <div class="ml-auto flex gap-2">
+        <p-button label="수정" icon="pi pi-pencil" (onClick)="goToEdit()" />
+        <p-button
+          label="삭제"
+          icon="pi pi-trash"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="confirmDelete($event)"
+        />
+      </div>
+    </div>
+
+    <p-card>
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+        <!-- 기본 정보 -->
+        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-2">기본 정보</div>
+        <div><span class="text-gray-500">이메일</span><p class="font-medium mt-0.5">{{ member()!.email ?? '—' }}</p></div>
+        <div><span class="text-gray-500">전화번호</span><p class="font-medium mt-0.5">{{ member()!.phoneNumber ?? '—' }}</p></div>
+        <div><span class="text-gray-500">성별</span><p class="font-medium mt-0.5">{{ genderLabel(member()!.gender) }}</p></div>
+        <div><span class="text-gray-500">생년월일</span><p class="font-medium mt-0.5">{{ member()!.birthDate ?? '—' }}</p></div>
+
+        <!-- 교회 정보 -->
+        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-4">교회 정보</div>
+        <div><span class="text-gray-500">세례</span><p class="font-medium mt-0.5">{{ baptismLabel(member()!.baptism) }}</p></div>
+        <div><span class="text-gray-500">직분</span><p class="font-medium mt-0.5">{{ member()!.churchRole ?? '—' }}</p></div>
+        <div><span class="text-gray-500">그룹</span><p class="font-medium mt-0.5">{{ member()!.groupName ?? '—' }}</p></div>
+        <div><span class="text-gray-500">등록일</span><p class="font-medium mt-0.5">{{ member()!.registrationDate ?? '—' }}</p></div>
+
+        <!-- 주소 -->
+        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-4">주소</div>
+        <div class="col-span-2">
+          <span class="text-gray-500">주소</span>
+          <p class="font-medium mt-0.5">
+            @if (member()!.street || member()!.city) {
+              {{ member()!.street }} {{ member()!.zipCode }} {{ member()!.city }}
+            } @else {
+              —
+            }
+          </p>
+        </div>
+      </div>
+    </p-card>
+  }
+
+  <!-- Not found -->
+  @if (!loading() && !member()) {
+    <div class="text-center py-16 text-gray-400">회원 정보를 찾을 수 없습니다.</div>
+  }
+</div>
+
+<p-confirmDialog />
+<p-toast />
