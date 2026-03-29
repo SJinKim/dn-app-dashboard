@@ -48,7 +48,7 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.roles().includes('ADMIN');
+    return this.roles().some(r => r.toLowerCase() === 'admin');
   }
 
   logout(): void {

@@ -1,0 +1,78 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-6">
+    <p-button
+      icon="pi pi-arrow-left"
+      [text]="true"
+      severity="secondary"
+      (onClick)="goBack()"
+    />
+    <h1 class="text-2xl font-bold text-gray-800">{{ definitionTitle() }} — 출석 로그</h1>
+  </div>
+
+  <!-- Date range filter -->
+  <div class="flex items-center gap-3 mb-6">
+    <label class="text-sm text-gray-600 whitespace-nowrap">기간 필터:</label>
+    <p-datepicker
+      [(ngModel)]="dateRange"
+      selectionMode="range"
+      [readonlyInput]="true"
+      placeholder="날짜 범위 선택"
+      dateFormat="yy-mm-dd"
+      (onSelect)="onDateRangeSelect(dateRange!)"
+      styleClass="w-64"
+    />
+    @if (dateRange) {
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        pTooltip="필터 초기화"
+        (onClick)="clearDateRange()"
+      />
+    }
+  </div>
+
+  <!-- Logs Table -->
+  <p-table
+    [value]="logs()"
+    [loading]="loading()"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>회원</th>
+        <th>출석일</th>
+        <th>출석 여부</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-log>
+      <tr>
+        <td class="font-medium">{{ log.memberName }}</td>
+        <td class="text-gray-500">{{ log.attendanceDate }}</td>
+        <td>
+          <span class="pi" [ngClass]="log.attended ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-400'"></span>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="3" class="text-center py-8 text-gray-400">
+          출석 로그가 없습니다.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Footer stats -->
+  @if (logs().length > 0) {
+    <div class="mt-4 text-sm text-gray-500">
+      총 {{ logs().length }}건
+    </div>
+  }
+</div>
+
+<p-toast />

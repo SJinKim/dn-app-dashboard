@@ -1,17 +1,29 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { ShellComponent } from './shell/shell.component';
 
 export const APP_ROUTES: Routes = [
   {
     path: '',
-    redirectTo: '/members',
-    pathMatch: 'full',
-  },
-  {
-    path: 'members',
+    component: ShellComponent,
     canActivate: [authGuard],
-    loadChildren: () =>
-      import('./features/members/members.routes').then(m => m.MEMBERS_ROUTES),
+    children: [
+      {
+        path: '',
+        redirectTo: 'members',
+        pathMatch: 'full',
+      },
+      {
+        path: 'members',
+        loadChildren: () =>
+          import('./features/members/members.routes').then(m => m.MEMBERS_ROUTES),
+      },
+      {
+        path: 'attendance',
+        loadChildren: () =>
+          import('./features/attendance/attendance.routes').then(m => m.ATTENDANCE_ROUTES),
+      },
+    ],
   },
   {
     path: '**',

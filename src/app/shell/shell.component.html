@@ -1,0 +1,56 @@
+<div class="min-h-screen flex flex-col bg-gray-50">
+
+  <!-- Top bar -->
+  <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 z-10">
+    <span class="text-lg font-bold text-primary-600">한마음 D+N</span>
+    <div class="flex items-center gap-3">
+      @if (auth.isAuthenticated()) {
+        <span class="text-sm text-gray-600">{{ auth.username() }}</span>
+        <button
+          (click)="auth.logout()"
+          class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1.5 transition-colors"
+        >
+          <i class="pi pi-sign-out text-xs"></i>
+          로그아웃
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Sidebar -->
+    <nav class="w-52 bg-white border-r border-gray-200 flex flex-col pt-3 flex-shrink-0">
+      <a
+        routerLink="/members"
+        routerLinkActive="!bg-primary-50 !text-primary-600 font-semibold"
+        class="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 mx-2 rounded-lg transition-colors"
+      >
+        <i class="pi pi-users w-4"></i>
+        회원
+      </a>
+      <a
+        routerLink="/ministry"
+        routerLinkActive="!bg-primary-50 !text-primary-600 font-semibold"
+        class="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 mx-2 rounded-lg transition-colors"
+      >
+        <i class="pi pi-sitemap w-4"></i>
+        부서
+      </a>
+      <a
+        routerLink="/attendance"
+        routerLinkActive="!bg-primary-50 !text-primary-600 font-semibold"
+        class="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 mx-2 rounded-lg transition-colors"
+      >
+        <i class="pi pi-calendar-check w-4"></i>
+        출석
+      </a>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 overflow-auto">
+      <router-outlet />
+    </main>
+
+  </div>
+</div>

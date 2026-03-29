@@ -5,6 +5,7 @@ import { PageResponse } from '../../core/models/api-response.model';
 import {
   Member,
   MemberSummary,
+  MemberStatus,
   CreateMemberRequest,
   UpdateMemberRequest,
 } from '../../core/models/member.model';
@@ -15,6 +16,7 @@ export class MemberService {
 
   getMembers(params: {
     search?: string;
+    status?: MemberStatus | null;
     page?: number;
     size?: number;
   }): Observable<PageResponse<MemberSummary>> {
@@ -22,10 +24,13 @@ export class MemberService {
       page: params.page ?? 0,
       size: params.size ?? 20,
     };
-    if (params.search?.trim()) {
-      qp['search'] = params.search.trim();
-    }
+    if (params.search?.trim()) qp['search'] = params.search.trim();
+    if (params.status)         qp['status'] = params.status;
     return this.api.get<PageResponse<MemberSummary>>('/v1/members', qp);
+  }
+
+  approveMember(publicId: string): Observable<Member> {
+    return this.api.patch<Member>(`/v1/members/${publicId}`, { memberStatus: 'ACTIVE' });
   }
 
   getMember(publicId: string): Observable<Member> {

@@ -1,0 +1,193 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">출석 정의 관리</h1>
+    <p-button
+      label="출석 정의 추가"
+      icon="pi pi-plus"
+      (onClick)="showCreate.set(!showCreate())"
+    />
+  </div>
+
+  <!-- Inline Create Form -->
+  @if (showCreate()) {
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">새 출석 정의</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">제목</label>
+          <input
+            pInputText
+            type="text"
+            placeholder="예: 주일 예배"
+            [(ngModel)]="createTitle"
+            maxlength="100"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">요일</label>
+          <p-select
+            [options]="dayOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="요일 선택"
+            [(ngModel)]="createDayOfWeek"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">시작 시간</label>
+          <input
+            pInputText
+            type="time"
+            [(ngModel)]="createWindowStart"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">종료 시간</label>
+          <input
+            pInputText
+            type="time"
+            [(ngModel)]="createWindowEnd"
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <p-button label="저장" icon="pi pi-check" (onClick)="onCreateSubmit()" />
+        <p-button
+          label="취소"
+          icon="pi pi-times"
+          severity="secondary"
+          [text]="true"
+          (onClick)="showCreate.set(false)"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- Definitions Table -->
+  <p-table
+    [value]="definitions()"
+    [loading]="loading()"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>제목</th>
+        <th>요일</th>
+        <th>시간</th>
+        <th>상태</th>
+        <th class="w-40">관리</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-def>
+      <tr>
+        <td class="font-medium">{{ def.title }}</td>
+        <td>{{ dayLabel(def.dayOfWeek) }}</td>
+        <td class="text-gray-500">{{ formatTime(def.windowStart) }} – {{ formatTime(def.windowEnd) }}</td>
+        <td>
+          <p-tag
+            [value]="def.isActive ? '활성' : '비활성'"
+            [severity]="def.isActive ? 'success' : 'secondary'"
+          />
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <p-button
+              icon="pi pi-list"
+              [text]="true"
+              size="small"
+              pTooltip="로그 보기"
+              (onClick)="viewLogs(def)"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              size="small"
+              pTooltip="수정"
+              (onClick)="openEdit(def)"
+            />
+            <p-button
+              icon="pi pi-ban"
+              severity="danger"
+              [text]="true"
+              size="small"
+              pTooltip="비활성화"
+              [disabled]="!def.isActive"
+              (onClick)="confirmDeactivate(def, $event)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8 text-gray-400">
+          출석 정의가 없습니다.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Edit Dialog -->
+<p-dialog
+  header="출석 정의 수정"
+  [(visible)]="showEditDialog"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [closable]="true"
+>
+  <div class="flex flex-col gap-4 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-600">제목</label>
+      <input pInputText type="text" [(ngModel)]="editTitle" maxlength="100" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-gray-600">요일</label>
+      <p-select
+        [options]="dayOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="editDayOfWeek"
+        styleClass="w-full"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-600">시작 시간</label>
+        <input pInputText type="time" [(ngModel)]="editWindowStart" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-gray-600">종료 시간</label>
+        <input pInputText type="time" [(ngModel)]="editWindowEnd" />
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <input type="checkbox" id="editIsActive" [(ngModel)]="editIsActive" class="w-4 h-4" />
+      <label for="editIsActive" class="text-sm text-gray-600">활성</label>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="취소"
+      severity="secondary"
+      [text]="true"
+      (onClick)="showEditDialog = false"
+    />
+    <p-button label="저장" icon="pi pi-check" (onClick)="onEditSave()" />
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog />
+<p-toast />

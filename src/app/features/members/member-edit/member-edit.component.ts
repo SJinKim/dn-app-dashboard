@@ -18,6 +18,9 @@ import {
   GENDER_OPTIONS,
   BAPTISM_OPTIONS,
   Member,
+  Gender,
+  Baptism,
+  MemberStatus,
 } from '../../../core/models/member.model';
 
 @Component({
@@ -124,8 +127,8 @@ export class MemberEditComponent implements OnInit {
         lastName:         raw.lastName ?? undefined,
         firstName:        raw.firstName ?? undefined,
         discriminator:    raw.discriminator || undefined,
-        gender:           raw.gender ?? undefined,
-        baptism:          raw.baptism ?? undefined,
+        gender:           (raw.gender as Gender) ?? undefined,
+        baptism:          (raw.baptism as Baptism) ?? undefined,
         birthDate:        toIso(raw.birthDate),
         phoneNumber:      raw.phoneNumber || undefined,
         email:            raw.email || undefined,
@@ -134,7 +137,7 @@ export class MemberEditComponent implements OnInit {
         city:             raw.city || undefined,
         registrationDate: toIso(raw.registrationDate),
         churchRole:       raw.churchRole || undefined,
-        memberStatus:     raw.memberStatus ?? undefined,
+        memberStatus:     (raw.memberStatus as MemberStatus) ?? undefined,
       };
       this.memberService.updateMember(this.publicId, req).subscribe({
         next: updated => {
@@ -152,8 +155,8 @@ export class MemberEditComponent implements OnInit {
         lastName:         raw.lastName!,
         firstName:        raw.firstName!,
         discriminator:    raw.discriminator || undefined,
-        gender:           raw.gender ?? undefined,
-        baptism:          raw.baptism ?? undefined,
+        gender:           (raw.gender as Gender) ?? undefined,
+        baptism:          (raw.baptism as Baptism) ?? undefined,
         birthDate:        toIso(raw.birthDate),
         phoneNumber:      raw.phoneNumber || undefined,
         email:            raw.email || undefined,

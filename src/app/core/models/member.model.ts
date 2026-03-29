@@ -65,11 +65,12 @@ export interface UpdateMemberRequest {
   profileImageUrl?: string;
 }
 
-export type MemberStatus = 'ACTIVE' | 'INACTIVE' | 'DELETED';
+export type MemberStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'DELETED';
 export type Gender      = 'M' | 'F';
 export type Baptism     = 'UNBAPTIZED' | 'INFANT_BAPTIZED' | 'CONFIRMATION' | 'GENERAL_BAPTIZED';
 
 export const MEMBER_STATUS_LABELS: Record<MemberStatus, string> = {
+  PENDING:  '대기중',
   ACTIVE:   '활성',
   INACTIVE: '비활성',
   DELETED:  '삭제됨',

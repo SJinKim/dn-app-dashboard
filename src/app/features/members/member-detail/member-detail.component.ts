@@ -94,7 +94,7 @@ export class MemberDetailComponent implements OnInit {
     switch (status) {
       case 'ACTIVE':   return 'success';
       case 'INACTIVE': return 'warn';
-      case 'DELETED':  return 'danger';
+      default:         return 'danger';
     }
   }
 }
