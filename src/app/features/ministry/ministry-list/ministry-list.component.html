@@ -1,0 +1,87 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">부서 관리</h1>
+    <p-button label="부서 추가" icon="pi pi-plus" (onClick)="goToCreate()" />
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="flex gap-1 mb-4 border-b border-gray-200">
+    @for (tab of filterTabs; track tab.label) {
+      <button
+        (click)="onFilterTab(tab.value)"
+        class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px"
+        [class]="activeFilter() === tab.value
+          ? 'border-primary-500 text-primary-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700'"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Table -->
+  <p-table
+    [value]="ministries()"
+    [loading]="loading()"
+    rowHover
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>부서명</th>
+        <th>짧은 설명</th>
+        <th>리더</th>
+        <th>상태</th>
+        <th class="w-28">관리</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-ministry>
+      <tr class="cursor-pointer" (click)="goToDetail(ministry)">
+        <td class="font-medium">{{ ministry.name }}</td>
+        <td class="text-gray-500">{{ ministry.shortDescription }}</td>
+        <td class="text-gray-500">{{ ministry.leaderName ?? '—' }}</td>
+        <td>
+          <p-tag
+            [value]="ministry.isActive ? '활성' : '비활성'"
+            [severity]="ministry.isActive ? 'success' : 'secondary'"
+          />
+        </td>
+        <td>
+          <div class="flex gap-1" (click)="$event.stopPropagation()">
+            <p-button
+              icon="pi pi-pencil"
+              severity="info"
+              [text]="true"
+              size="small"
+              pTooltip="수정"
+              (onClick)="goToEdit(ministry, $event)"
+            />
+            @if (ministry.isActive) {
+              <p-button
+                icon="pi pi-ban"
+                severity="warn"
+                [text]="true"
+                size="small"
+                pTooltip="비활성화"
+                (onClick)="confirmDeactivate(ministry, $event)"
+              />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8 text-gray-400">
+          부서가 없습니다.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-confirmDialog />
+<p-toast />

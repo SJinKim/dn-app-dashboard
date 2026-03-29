@@ -1,0 +1,105 @@
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6">
+    <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <h1 class="text-2xl font-bold text-gray-800">부서 상세</h1>
+    <div class="ml-auto">
+      <p-button label="수정" icon="pi pi-pencil" severity="info" (onClick)="goToEdit()" />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <p-progressSpinner strokeWidth="4" />
+    </div>
+  } @else if (ministry()) {
+    <!-- Info card -->
+    <p-card class="mb-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">부서명</p>
+          <p class="font-semibold text-gray-800">{{ ministry()!.name }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">상태</p>
+          <p-tag
+            [value]="ministry()!.isActive ? '활성' : '비활성'"
+            [severity]="ministry()!.isActive ? 'success' : 'secondary'"
+          />
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">짧은 설명</p>
+          <p class="text-gray-700">{{ ministry()!.shortDescription }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">리더</p>
+          <p class="text-gray-700">{{ ministry()!.leader?.fullName ?? '—' }}</p>
+        </div>
+        @if (ministry()!.longDescription) {
+          <div class="col-span-2">
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">긴 설명</p>
+            <p class="text-gray-700 whitespace-pre-wrap">{{ ministry()!.longDescription }}</p>
+          </div>
+        }
+      </div>
+    </p-card>
+
+    <!-- Registrations -->
+    <div class="mb-4 flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-gray-700">등록 목록</h2>
+      <div class="flex items-center gap-2 ml-auto">
+        <input
+          pInputText
+          [(ngModel)]="periodFilter"
+          placeholder="연도 (예: 2026)"
+          class="w-32"
+          maxlength="4"
+        />
+        <p-button label="조회" size="small" (onClick)="loadRegistrations()" />
+      </div>
+    </div>
+
+    <p-table
+      [value]="registrations()"
+      [loading]="regsLoading()"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>회원명</th>
+          <th>등록 기간</th>
+          <th>메모</th>
+          <th class="w-20">관리</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-reg>
+        <tr>
+          <td class="font-medium">{{ reg.memberName }}</td>
+          <td class="text-gray-500">{{ reg.registrationPeriod }}</td>
+          <td class="text-gray-500">{{ reg.note ?? '—' }}</td>
+          <td>
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              size="small"
+              pTooltip="삭제"
+              (onClick)="confirmRemoveRegistration(reg, $event)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center py-8 text-gray-400">
+            등록된 회원이 없습니다.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>
+
+<p-confirmDialog />
+<p-toast />
