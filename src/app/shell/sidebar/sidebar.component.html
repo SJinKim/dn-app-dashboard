@@ -1,0 +1,70 @@
+<aside
+  class="relative flex flex-col bg-white border-r border-gray-100 flex-shrink-0 transition-all duration-200"
+  [style.width]="sidebarWidth()"
+>
+  <!-- Brand -->
+  <div class="px-5 py-4 border-b border-gray-50 flex-shrink-0 overflow-hidden">
+    <div class="text-[15px] font-extrabold text-primary tracking-tight whitespace-nowrap">
+      한마음 D+N
+    </div>
+    @if (!collapsed()) {
+      <div class="text-[9px] text-tertiary font-medium uppercase tracking-widest mt-0.5">
+        Church Management
+      </div>
+    }
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 py-2 overflow-hidden">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active-nav-item"
+        [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+        class="nav-item relative flex items-center gap-2.5 px-5 py-2.5 text-[13px] font-medium text-secondary hover:bg-neutral transition-colors overflow-hidden whitespace-nowrap"
+        [pTooltip]="collapsed() ? item.label : ''"
+        tooltipPosition="right"
+      >
+        <i [class]="item.icon + ' text-sm w-4 flex-shrink-0'"></i>
+        @if (!collapsed()) {
+          <span class="tracking-tight">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Bottom: Logout + User -->
+  <div class="border-t border-gray-50 py-2 flex-shrink-0 overflow-hidden">
+    <button
+      (click)="auth.logout()"
+      class="flex items-center gap-2.5 px-5 py-2.5 w-full text-[13px] font-medium text-red-500 hover:bg-red-50 transition-colors whitespace-nowrap overflow-hidden"
+      [pTooltip]="collapsed() ? 'Logout' : ''"
+      tooltipPosition="right"
+    >
+      <i class="pi pi-sign-out text-sm w-4 flex-shrink-0"></i>
+      @if (!collapsed()) {
+        <span class="tracking-tight">Logout</span>
+      }
+    </button>
+
+    <div class="flex items-center gap-2.5 px-4 py-2 overflow-hidden">
+      <div class="w-7 h-7 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+        {{ userInitials }}
+      </div>
+      @if (!collapsed()) {
+        <div class="overflow-hidden">
+          <div class="text-[12px] font-semibold text-primary tracking-tight truncate">{{ auth.username() }}</div>
+          <div class="text-[10px] text-tertiary">Administrator</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Collapse toggle — vertically centered on right edge -->
+  <button
+    (click)="toggleCollapse()"
+    class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-secondary hover:text-primary transition-colors z-10 text-[10px]"
+  >
+    <i [class]="collapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"></i>
+  </button>
+</aside>
