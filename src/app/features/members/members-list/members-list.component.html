@@ -1,118 +1,190 @@
+<!-- src/app/features/members/members-list/members-list.component.html -->
 <div class="p-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">회원 관리</h1>
-    <p-button label="회원 추가" icon="pi pi-plus" (onClick)="goToCreate()" />
+
+  <!-- Page title -->
+  <div class="mb-5">
+    <h1 class="text-[26px] font-extrabold text-primary tracking-tight">Congregation Core</h1>
+    <p class="text-[13px] text-tertiary mt-1">Manage members, roles, and status.</p>
   </div>
 
-  <!-- Status filter tabs -->
-  <div class="flex gap-1 mb-4 border-b border-gray-200">
-    @for (tab of statusTabs; track tab.value) {
+  <!-- Pending banner -->
+  @if (pendingCount() > 0) {
+    <div class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5">
+      <span class="text-[12px] font-bold text-amber-700">
+        ⚠️ {{ pendingCount() }} member{{ pendingCount() === 1 ? '' : 's' }} awaiting approval
+      </span>
       <button
-        (click)="onStatusTab(tab.value)"
-        class="px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px"
-        [class]="activeStatus() === tab.value
-          ? 'border-primary-500 text-primary-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700'"
+        (click)="showPendingOnly()"
+        class="text-[11px] font-bold text-primary underline hover:no-underline tracking-tight"
       >
-        {{ tab.label }}
+        Show pending only →
       </button>
-    }
-  </div>
+    </div>
+  }
 
-  <!-- Search -->
-  <div class="mb-4">
-    <span class="p-input-icon-left w-full max-w-sm">
-      <i class="pi pi-search"></i>
+  <!-- Filters row -->
+  <div class="flex items-center gap-3 mb-5">
+    <p-select
+      [options]="roleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="activeRole()"
+      (ngModelChange)="onRoleChange($event)"
+      styleClass="h-9 text-[12px]"
+      placeholder="All Roles"
+    />
+    <p-select
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="activeStatus()"
+      (ngModelChange)="onStatusChange($event)"
+      styleClass="h-9 text-[12px]"
+      placeholder="All Status"
+    />
+    <div class="flex-1 flex items-center gap-2 h-9 bg-white border border-gray-200 rounded-lg px-3">
+      <i class="pi pi-search text-tertiary text-[12px]"></i>
       <input
-        pInputText
         type="text"
-        placeholder="이름 또는 이메일 검색"
-        class="w-full"
+        class="flex-1 outline-none text-[12px] bg-transparent placeholder:text-tertiary"
+        placeholder="Search name or email..."
         [ngModel]="searchTerm"
         (ngModelChange)="onSearch($event)"
       />
-    </span>
+    </div>
+    <button
+      (click)="goToCreate()"
+      class="flex items-center gap-2 h-9 px-4 bg-primary text-white rounded-lg text-[12px] font-bold hover:bg-primary-hover transition-colors tracking-tight whitespace-nowrap"
+    >
+      <i class="pi pi-plus text-[11px]"></i>
+      Add Member
+    </button>
   </div>
 
   <!-- Table -->
-  <p-table
-    [value]="members()"
-    [loading]="loading()"
-    [rows]="size"
-    [totalRecords]="totalRecords()"
-    [paginator]="true"
-    [lazy]="true"
-    (onLazyLoad)="onPageChange($event)"
-    rowHover
-    styleClass="p-datatable-sm"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th>이름</th>
-        <th>이메일</th>
-        <th>그룹</th>
-        <th>상태</th>
-        <th class="w-32">관리</th>
-      </tr>
-    </ng-template>
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <p-table
+      [value]="members()"
+      [loading]="loading()"
+      [rows]="size"
+      [totalRecords]="totalRecords()"
+      [paginator]="false"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      rowHover
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="w-64">Name</th>
+          <th class="w-24">Role</th>
+          <th class="w-24">Status</th>
+          <th class="w-28">Baptism</th>
+          <th class="w-32">Last Active</th>
+          <th class="w-28">Approve</th>
+          <th class="w-16">Edit</th>
+        </tr>
+      </ng-template>
 
-    <ng-template pTemplate="body" let-member>
-      <tr class="cursor-pointer" (click)="goToDetail(member)">
-        <td class="font-medium">{{ member.lastName }}{{ member.firstName }}</td>
-        <td class="text-gray-500">{{ member.email ?? '—' }}</td>
-        <td class="text-gray-500">{{ member.groupName ?? '—' }}</td>
-        <td>
-          <p-tag
-            [value]="statusLabel(member.memberStatus)"
-            [severity]="statusSeverity(member.memberStatus)"
-          />
-        </td>
-        <td>
-          <div class="flex gap-1" (click)="$event.stopPropagation()">
-            <!-- Approve: shown for PENDING -->
+      <ng-template pTemplate="body" let-member>
+        <tr
+          class="cursor-pointer border-b border-gray-50"
+          [class.bg-purple-50]="member.memberStatus === 'PENDING'"
+          (click)="goToDetail(member)"
+        >
+          <!-- Name -->
+          <td class="px-4 py-3">
+            <div class="text-[13px] font-semibold text-gray-800 tracking-tight">
+              {{ member.lastName }}{{ member.firstName }}
+            </div>
+            <div class="text-[11px] text-tertiary">{{ member.email ?? '—' }}</div>
+          </td>
+
+          <!-- Role badge -->
+          <td class="px-4 py-3">
+            <span [class]="'status-badge ' + roleBadgeClass(member.role)">
+              {{ member.role ?? 'MEMBER' }}
+            </span>
+          </td>
+
+          <!-- Status badge -->
+          <td class="px-4 py-3">
+            <span [class]="'status-badge ' + statusBadgeClass(member.memberStatus)">
+              {{ member.memberStatus }}
+            </span>
+          </td>
+
+          <!-- Baptism -->
+          <td class="px-4 py-3 text-[12px] text-secondary">
+            {{ member.baptism ?? '—' }}
+          </td>
+
+          <!-- Last Active -->
+          <td class="px-4 py-3 text-[12px] text-tertiary">
+            {{ member.updatedAt ? (member.updatedAt | date:'yyyy-MM-dd') : '—' }}
+          </td>
+
+          <!-- Approve -->
+          <td class="px-4 py-3" (click)="$event.stopPropagation()">
             @if (member.memberStatus === 'PENDING') {
-              <p-button
-                icon="pi pi-check"
-                severity="success"
-                [text]="true"
-                size="small"
-                pTooltip="승인"
-                (onClick)="confirmApprove(member, $event)"
-              />
+              <button
+                (click)="confirmApprove(member, $event)"
+                class="flex items-center gap-1 h-7 px-3 bg-primary text-white rounded-md text-[11px] font-bold hover:bg-primary-hover transition-colors tracking-tight"
+              >
+                <i class="pi pi-check text-[9px]"></i>
+                Approve
+              </button>
+            } @else {
+              <span class="text-tertiary text-[12px]">—</span>
             }
-            <!-- Reactivate: shown for INACTIVE -->
-            @if (member.memberStatus === 'INACTIVE') {
-              <p-button
-                icon="pi pi-refresh"
-                severity="info"
-                [text]="true"
-                size="small"
-                pTooltip="재활성"
-                (onClick)="confirmApprove(member, $event)"
-              />
-            }
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              size="small"
-              pTooltip="삭제"
-              (onClick)="confirmDelete(member, $event)"
-            />
-          </div>
-        </td>
-      </tr>
-    </ng-template>
+          </td>
 
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" class="text-center py-8 text-gray-400">
-          검색 결과가 없습니다.
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+          <!-- Edit -->
+          <td class="px-4 py-3" (click)="$event.stopPropagation()">
+            <button
+              (click)="goToEdit(member, $event)"
+              class="w-8 h-8 flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg text-secondary hover:text-primary hover:border-primary transition-colors"
+              aria-label="Edit member"
+            >
+              <i class="pi pi-pencil text-[11px]"></i>
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-10 text-tertiary text-[13px]">
+            No members found.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Custom pagination footer -->
+    <div class="flex items-center justify-between px-5 py-3 border-t border-gray-50 text-[11px] text-tertiary">
+      <span>Showing {{ showingFrom() }}–{{ showingTo() }} of {{ totalRecords() }} members</span>
+      <div class="flex gap-1">
+        <button
+          [disabled]="page === 0"
+          (click)="loadPage(page - 1)"
+          aria-label="Previous page"
+          class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 hover:border-primary text-secondary disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <i class="pi pi-chevron-left text-[9px]"></i>
+        </button>
+        <button
+          [disabled]="showingTo() >= totalRecords()"
+          (click)="loadPage(page + 1)"
+          aria-label="Next page"
+          class="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 hover:border-primary text-secondary disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <i class="pi pi-chevron-right text-[9px]"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <p-confirmDialog />

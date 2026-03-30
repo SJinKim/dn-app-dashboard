@@ -1,41 +1,37 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+// src/app/features/members/members-list/members-list.component.ts
+import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
+import { SelectModule } from 'primeng/select';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 
 import { MemberService } from '../member.service';
-import { MemberSummary, MemberStatus, MEMBER_STATUS_LABELS } from '../../../core/models/member.model';
+import { MemberSummary, MemberStatus } from '../../../core/models/member.model';
 
 type StatusFilter = MemberStatus | null;
-
-interface StatusTab {
-  label: string;
-  value: StatusFilter;
-}
+type RoleFilter   = 'ADMIN' | 'MEMBER' | null;
 
 @Component({
   selector: 'app-members-list',
   standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     FormsModule,
     TableModule,
     InputTextModule,
     ButtonModule,
-    TagModule,
+    SelectModule,
     ConfirmDialogModule,
     ToastModule,
-    TooltipModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './members-list.component.html',
@@ -45,30 +41,47 @@ export class MembersListComponent implements OnInit {
   private readonly router         = inject(Router);
   private readonly confirmService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef     = inject(DestroyRef);
 
   members      = signal<MemberSummary[]>([]);
   totalRecords = signal(0);
+  pendingCount = signal(0);
   loading      = signal(false);
   searchTerm   = '';
   activeStatus = signal<StatusFilter>(null);
+  activeRole   = signal<RoleFilter>(null);
 
   page = 0;
   size = 20;
 
-  readonly statusTabs: StatusTab[] = [
-    { label: '전체',   value: null },
-    { label: '대기중', value: 'PENDING' },
-    { label: '활성',   value: 'ACTIVE' },
-    { label: '비활성', value: 'INACTIVE' },
+  readonly roleOptions = [
+    { label: 'All Roles', value: null },
+    { label: 'Admin',     value: 'ADMIN' },
+    { label: 'Member',    value: 'MEMBER' },
+  ];
+
+  readonly statusOptions = [
+    { label: 'All Status', value: null      },
+    { label: 'Active',     value: 'ACTIVE'  },
+    { label: 'Inactive',   value: 'INACTIVE'},
+    { label: 'Pending',    value: 'PENDING' },
+    { label: 'Deleted',    value: 'DELETED' },
   ];
 
   private readonly search$ = new Subject<string>();
 
   ngOnInit(): void {
     this.loadPage(0);
+    this.loadPendingCount();
     this.search$
-      .pipe(debounceTime(300), distinctUntilChanged())
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(term => { this.searchTerm = term; this.loadPage(0); });
+  }
+
+  private loadPendingCount(): void {
+    this.memberService.getMembers({ status: 'PENDING', size: 1 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: res => this.pendingCount.set(res.totalElements) });
   }
 
   loadPage(page: number): void {
@@ -76,25 +89,18 @@ export class MembersListComponent implements OnInit {
     this.loading.set(true);
     this.memberService
       .getMembers({ search: this.searchTerm, status: this.activeStatus(), page: this.page, size: this.size })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: res => {
-          this.members.set(res.content);
-          this.totalRecords.set(res.totalElements);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: '오류', detail: '회원 목록을 불러올 수 없습니다.' });
-          this.loading.set(false);
-        },
+        next: res => { this.members.set(res.content); this.totalRecords.set(res.totalElements); this.loading.set(false); },
+        error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load members.' }); this.loading.set(false); },
       });
   }
 
   onSearch(term: string): void { this.search$.next(term); }
 
-  onStatusTab(status: StatusFilter): void {
-    this.activeStatus.set(status);
-    this.loadPage(0);
-  }
+  onStatusChange(value: StatusFilter): void { this.activeStatus.set(value); this.loadPage(0); }
+  onRoleChange(value: RoleFilter): void     { this.activeRole.set(value);   this.loadPage(0); }
+  showPendingOnly(): void                   { this.activeStatus.set('PENDING'); this.loadPage(0); }
 
   onPageChange(event: TableLazyLoadEvent): void {
     const first = event.first ?? 0;
@@ -104,68 +110,38 @@ export class MembersListComponent implements OnInit {
   }
 
   goToDetail(member: MemberSummary): void { this.router.navigate(['/members', member.publicId]); }
+  goToEdit(member: MemberSummary, event: Event): void { event.stopPropagation(); this.router.navigate(['/members', member.publicId, 'edit']); }
   goToCreate(): void { this.router.navigate(['/members', 'new']); }
 
   confirmApprove(member: MemberSummary, event: Event): void {
-    const action = member.memberStatus === 'PENDING' ? '승인' : '재활성';
+    event.stopPropagation();
     this.confirmService.confirm({
       target: event.target as EventTarget,
-      message: `${member.lastName}${member.firstName} 회원을 ${action}하시겠습니까?`,
-      header: `회원 ${action}`,
+      message: `Approve ${member.lastName}${member.firstName}?`,
+      header: 'Approve Member',
       icon: 'pi pi-check-circle',
-      acceptLabel: action,
-      rejectLabel: '취소',
+      acceptLabel: 'Approve',
+      rejectLabel: 'Cancel',
       accept: () => this.approveMember(member),
     });
   }
 
   private approveMember(member: MemberSummary): void {
-    this.memberService.approveMember(member.publicId).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: '완료', detail: '승인되었습니다.' });
-        this.loadPage(this.page);
-      },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: '오류', detail: '승인에 실패했습니다.' });
-      },
-    });
+    this.memberService.approveMember(member.publicId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Done', detail: 'Member approved.' }); this.loadPage(this.page); this.loadPendingCount(); },
+        error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Approval failed.' }); },
+      });
   }
 
-  confirmDelete(member: MemberSummary, event: Event): void {
-    this.confirmService.confirm({
-      target: event.target as EventTarget,
-      message: `${member.lastName}${member.firstName} 회원을 삭제하시겠습니까?`,
-      header: '회원 삭제',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: '삭제',
-      rejectLabel: '취소',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => this.deleteMember(member),
-    });
+  statusBadgeClass(status: MemberStatus): string {
+    const map: Record<MemberStatus, string> = { ACTIVE: 'badge-active', INACTIVE: 'badge-inactive', PENDING: 'badge-pending', DELETED: 'badge-deleted' };
+    return map[status] ?? '';
   }
 
-  private deleteMember(member: MemberSummary): void {
-    this.memberService.deleteMember(member.publicId).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: '완료', detail: '삭제되었습니다.' });
-        this.loadPage(this.page);
-      },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: '오류', detail: '삭제에 실패했습니다.' });
-      },
-    });
-  }
+  roleBadgeClass(role?: string): string { return role === 'ADMIN' ? 'badge-admin' : 'badge-member'; }
 
-  statusLabel(status: MemberStatus): string {
-    return MEMBER_STATUS_LABELS[status] ?? status;
-  }
-
-  statusSeverity(status: MemberStatus): 'success' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case 'PENDING':  return 'warn';
-      case 'ACTIVE':   return 'success';
-      case 'INACTIVE': return 'secondary';
-      default:         return 'danger';
-    }
-  }
+  showingFrom(): number { return this.page * this.size + 1; }
+  showingTo(): number   { return Math.min((this.page + 1) * this.size, this.totalRecords()); }
 }
