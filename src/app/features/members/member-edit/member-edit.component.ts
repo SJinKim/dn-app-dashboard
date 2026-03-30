@@ -1,16 +1,14 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, DestroyRef, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { MemberService } from '../member.service';
 import {
@@ -27,15 +25,12 @@ import {
   selector: 'app-member-edit',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-    CardModule,
     ButtonModule,
     InputTextModule,
     SelectModule,
     DatePickerModule,
     ToastModule,
-    ProgressSpinnerModule,
   ],
   providers: [MessageService],
   templateUrl: './member-edit.component.html',
@@ -46,6 +41,7 @@ export class MemberEditComponent implements OnInit {
   private readonly router        = inject(Router);
   private readonly fb            = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef    = inject(DestroyRef);
 
   readonly isEdit     = signal(false);
   readonly loading    = signal(false);
@@ -80,7 +76,7 @@ export class MemberEditComponent implements OnInit {
 
     if (this.publicId) {
       this.loading.set(true);
-      this.memberService.getMember(this.publicId).subscribe({
+      this.memberService.getMember(this.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: member => {
           this.patchForm(member);
           this.loading.set(false);
@@ -139,7 +135,7 @@ export class MemberEditComponent implements OnInit {
         churchRole:       raw.churchRole || undefined,
         memberStatus:     (raw.memberStatus as MemberStatus) ?? undefined,
       };
-      this.memberService.updateMember(this.publicId, req).subscribe({
+      this.memberService.updateMember(this.publicId, req).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: updated => {
           this.messageService.add({ severity: 'success', summary: '완료', detail: '저장되었습니다.' });
           this.saving.set(false);
@@ -166,7 +162,7 @@ export class MemberEditComponent implements OnInit {
         registrationDate: toIso(raw.registrationDate),
         churchRole:       raw.churchRole || undefined,
       };
-      this.memberService.createMember(req).subscribe({
+      this.memberService.createMember(req).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: created => {
           this.messageService.add({ severity: 'success', summary: '완료', detail: '등록되었습니다.' });
           this.saving.set(false);

@@ -1,232 +1,167 @@
-<div class="p-6 max-w-2xl mx-auto">
-  <!-- Loading -->
+<!-- src/app/features/members/member-edit/member-edit.component.html -->
+<div class="p-6 max-w-2xl">
+
   @if (loading()) {
-    <div class="flex justify-center py-16">
-      <p-progressSpinner />
-    </div>
+    <div class="flex justify-center py-16 text-tertiary text-[13px]">Loading...</div>
   }
 
   @if (!loading()) {
-    <div class="mb-6 flex items-center gap-3">
-      <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()" />
-      <h1 class="text-2xl font-bold text-gray-800">
-        {{ isEdit() ? '회원 수정' : '회원 등록' }}
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <button
+        type="button"
+        (click)="goBack()"
+        aria-label="Go back"
+        class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-secondary hover:text-primary hover:border-primary transition-colors"
+      >
+        <i class="pi pi-arrow-left text-[12px]"></i>
+      </button>
+      <h1 class="text-[22px] font-extrabold text-primary tracking-tight">
+        {{ isEdit() ? 'Edit Member' : 'Add Member' }}
       </h1>
     </div>
 
-    <p-card>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
       <form [formGroup]="form" (ngSubmit)="save()">
-        <!-- 기본 정보 -->
-        <div class="text-xs font-semibold uppercase text-gray-400 tracking-wider mb-4">기본 정보</div>
+
+        <!-- Basic Info -->
+        <div class="text-[9px] font-bold text-tertiary uppercase tracking-widest mb-4">Basic Info</div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-          <!-- 성 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">성 <span class="text-red-500">*</span></label>
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Last Name <span class="text-red-500">*</span></label>
             <input
               pInputText
               formControlName="lastName"
-              placeholder="성"
-              class="w-full"
+              placeholder="Last name"
+              class="w-full text-[13px]"
               [class.ng-invalid]="form.get('lastName')!.invalid && form.get('lastName')!.touched"
             />
             @if (form.get('lastName')!.invalid && form.get('lastName')!.touched) {
-              <small class="text-red-500">성은 필수 항목입니다.</small>
+              <small class="text-red-500 text-[11px]">Required.</small>
             }
           </div>
 
-          <!-- 이름 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">이름 <span class="text-red-500">*</span></label>
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">First Name <span class="text-red-500">*</span></label>
             <input
               pInputText
               formControlName="firstName"
-              placeholder="이름"
-              class="w-full"
+              placeholder="First name"
+              class="w-full text-[13px]"
               [class.ng-invalid]="form.get('firstName')!.invalid && form.get('firstName')!.touched"
             />
             @if (form.get('firstName')!.invalid && form.get('firstName')!.touched) {
-              <small class="text-red-500">이름은 필수 항목입니다.</small>
+              <small class="text-red-500 text-[11px]">Required.</small>
             }
           </div>
 
-          <!-- 구분자 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">구분자</label>
-            <input
-              pInputText
-              formControlName="discriminator"
-              placeholder="동명이인 구분 (예: 1남)"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Discriminator</label>
+            <input pInputText formControlName="discriminator" placeholder="e.g. 1남" class="w-full text-[13px]" />
           </div>
 
-          <!-- 성별 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">성별</label>
-            <p-select
-              formControlName="gender"
-              [options]="genderOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="선택"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Gender</label>
+            <p-select formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Select" class="w-full" />
           </div>
 
-          <!-- 생년월일 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">생년월일</label>
-            <p-datepicker
-              formControlName="birthDate"
-              dateFormat="yy-mm-dd"
-              placeholder="YYYY-MM-DD"
-              [showIcon]="true"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Date of Birth</label>
+            <p-datepicker formControlName="birthDate" dateFormat="yy-mm-dd" placeholder="YYYY-MM-DD" [showIcon]="true" class="w-full" />
           </div>
 
-          <!-- 전화번호 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">전화번호</label>
-            <input
-              pInputText
-              formControlName="phoneNumber"
-              placeholder="010-0000-0000"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Phone</label>
+            <input pInputText formControlName="phoneNumber" placeholder="010-0000-0000" class="w-full text-[13px]" />
           </div>
 
-          <!-- 이메일 -->
           <div class="flex flex-col gap-1 col-span-2">
-            <label class="text-sm text-gray-600 font-medium">이메일</label>
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Email</label>
             <input
               pInputText
               formControlName="email"
               type="email"
               placeholder="example@domain.com"
-              class="w-full"
+              class="w-full text-[13px]"
               [class.ng-invalid]="form.get('email')!.invalid && form.get('email')!.touched"
             />
             @if (form.get('email')!.invalid && form.get('email')!.touched) {
-              <small class="text-red-500">올바른 이메일 형식을 입력해주세요.</small>
+              <small class="text-red-500 text-[11px]">Invalid email format.</small>
             }
           </div>
         </div>
 
-        <!-- 교회 정보 -->
-        <div class="text-xs font-semibold uppercase text-gray-400 tracking-wider mb-4">교회 정보</div>
+        <!-- Church Info -->
+        <div class="text-[9px] font-bold text-tertiary uppercase tracking-widest mb-4">Church Info</div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-          <!-- 세례 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">세례</label>
-            <p-select
-              formControlName="baptism"
-              [options]="baptismOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="선택"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Baptism</label>
+            <p-select formControlName="baptism" [options]="baptismOptions" optionLabel="label" optionValue="value" placeholder="Select" class="w-full" />
           </div>
 
-          <!-- 직분 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">직분</label>
-            <input
-              pInputText
-              formControlName="churchRole"
-              placeholder="예: 집사, 권사"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Church Role</label>
+            <input pInputText formControlName="churchRole" placeholder="e.g. 집사, 권사" class="w-full text-[13px]" />
           </div>
 
-          <!-- 등록일 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">등록일</label>
-            <p-datepicker
-              formControlName="registrationDate"
-              dateFormat="yy-mm-dd"
-              placeholder="YYYY-MM-DD"
-              [showIcon]="true"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Registration Date</label>
+            <p-datepicker formControlName="registrationDate" dateFormat="yy-mm-dd" placeholder="YYYY-MM-DD" [showIcon]="true" class="w-full" />
           </div>
 
-          <!-- 상태 (수정 모드만) -->
           @if (isEdit()) {
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-600 font-medium">상태</label>
-              <p-select
-                formControlName="memberStatus"
-                [options]="statusOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="선택"
-                class="w-full"
-              />
+              <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Status</label>
+              <p-select formControlName="memberStatus" [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="Select" class="w-full" />
             </div>
           }
         </div>
 
-        <!-- 주소 -->
-        <div class="text-xs font-semibold uppercase text-gray-400 tracking-wider mb-4">주소</div>
+        <!-- Address -->
+        <div class="text-[9px] font-bold text-tertiary uppercase tracking-widest mb-4">Address</div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-          <!-- 도로명 주소 -->
           <div class="flex flex-col gap-1 col-span-2">
-            <label class="text-sm text-gray-600 font-medium">도로명 주소</label>
-            <input
-              pInputText
-              formControlName="street"
-              placeholder="도로명 주소"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Street</label>
+            <input pInputText formControlName="street" placeholder="Street address" class="w-full text-[13px]" />
           </div>
-
-          <!-- 우편번호 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">우편번호</label>
-            <input
-              pInputText
-              formControlName="zipCode"
-              placeholder="00000"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">Zip Code</label>
+            <input pInputText formControlName="zipCode" placeholder="00000" class="w-full text-[13px]" />
           </div>
-
-          <!-- 도시 -->
           <div class="flex flex-col gap-1">
-            <label class="text-sm text-gray-600 font-medium">도시</label>
-            <input
-              pInputText
-              formControlName="city"
-              placeholder="도시"
-              class="w-full"
-            />
+            <label class="text-[11px] font-semibold text-secondary uppercase tracking-widest">City</label>
+            <input pInputText formControlName="city" placeholder="City" class="w-full text-[13px]" />
           </div>
         </div>
 
         <!-- Actions -->
         <div class="flex justify-end gap-3">
-          <p-button
-            label="취소"
-            [text]="true"
-            severity="secondary"
-            (onClick)="goBack()"
+          <button
             type="button"
-          />
-          <p-button
-            [label]="isEdit() ? '저장' : '등록'"
-            [icon]="saving() ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
-            [disabled]="saving()"
+            (click)="goBack()"
+            class="h-9 px-5 rounded-lg border border-gray-200 text-secondary text-[12px] font-semibold hover:border-gray-300 transition-colors tracking-tight"
+          >
+            Cancel
+          </button>
+          <button
             type="submit"
-          />
+            [disabled]="saving()"
+            class="flex items-center gap-2 h-9 px-5 bg-primary text-white rounded-lg text-[12px] font-bold hover:bg-primary-hover transition-colors disabled:opacity-50 tracking-tight"
+          >
+            <i [class]="saving() ? 'pi pi-spin pi-spinner text-[11px]' : 'pi pi-check text-[11px]'"></i>
+            {{ isEdit() ? 'Save Changes' : 'Add Member' }}
+          </button>
         </div>
+
       </form>
-    </p-card>
+    </div>
+
   }
+
 </div>
 
 <p-toast />
