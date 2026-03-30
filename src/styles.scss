@@ -12,10 +12,12 @@
 // Design tokens
 :root {
   --color-primary: #2B3A67;
+  --color-primary-hover: #233060;
   --color-secondary: #5C6B89;
   --color-tertiary: #8E9AAF;
   --color-neutral: #F8F9FA;
   --color-surface-dark: #1C2340;
+  --color-surface-card: #FFFFFF;
   --sidebar-width-expanded: 256px;
   --sidebar-width-collapsed: 72px;
   --font-family: 'Manrope', sans-serif;
@@ -27,7 +29,7 @@ html, body {
   margin: 0;
   font-family: var(--font-family);
   letter-spacing: var(--letter-spacing-tight);
-  background: #F8F9FA;
+  background: var(--color-neutral);
 }
 
 // Status badge utility classes (fit-content, tight padding)
@@ -53,8 +55,8 @@ html, body {
 
 // PrimeNG table header
 .p-datatable .p-datatable-thead > tr > th {
-  background: #f8f9fa;
-  color: #8E9AAF;
+  background: var(--color-neutral);
+  color: var(--color-tertiary);
   font-weight: 700;
   font-size: 0.6875rem;
   text-transform: uppercase;
@@ -62,10 +64,11 @@ html, body {
 }
 
 // Sidebar active nav item
+// Note: .nav-item must have position: relative for the ::before bar to work
 .nav-item.active-nav-item {
-  color: #2B3A67 !important;
+  color: var(--color-primary);
   font-weight: 700;
-  background: rgba(43, 58, 103, 0.05);
+  background: rgba(43, 58, 103, 0.05); // primary color at 5% opacity
 
   &::before {
     content: '';
@@ -74,11 +77,11 @@ html, body {
     top: 0;
     bottom: 0;
     width: 3px;
-    background: #2B3A67;
+    background: var(--color-primary);
     border-radius: 0 2px 2px 0;
   }
 
   i {
-    color: #2B3A67;
+    color: var(--color-primary);
   }
 }

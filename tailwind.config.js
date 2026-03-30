@@ -6,19 +6,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#2B3A67',
-        'primary-hover': '#233060',
-        secondary: '#5C6B89',
-        tertiary: '#8E9AAF',
-        neutral: '#F8F9FA',
-        'surface-dark': '#1C2340',
-        'surface-card': '#FFFFFF',
+        primary: 'var(--color-primary)',
+        'primary-hover': 'var(--color-primary-hover)',
+        secondary: 'var(--color-secondary)',
+        tertiary: 'var(--color-tertiary)',
+        neutral: 'var(--color-neutral)',
+        'surface-dark': 'var(--color-surface-dark)',
+        'surface-card': 'var(--color-surface-card)',
       },
       fontFamily: {
         sans: ['Manrope', 'sans-serif'],
       },
       letterSpacing: {
-        tight: '-0.02em',
+        brand: '-0.02em',
       },
     },
   },
