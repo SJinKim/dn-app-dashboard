@@ -88,14 +88,6 @@ export class MemberDetailComponent implements OnInit {
   genderLabel(g: string | null): string       { return g ? (GENDER_LABELS[g as keyof typeof GENDER_LABELS] ?? g) : '—'; }
   baptismLabel(b: string | null): string      { return b ? (BAPTISM_LABELS[b as keyof typeof BAPTISM_LABELS] ?? b) : '—'; }
 
-  statusSeverity(status: MemberStatus): 'success' | 'warn' | 'danger' {
-    switch (status) {
-      case 'ACTIVE':   return 'success';
-      case 'INACTIVE': return 'warn';
-      default:         return 'danger';
-    }
-  }
-
   statusBadgeClass(status: MemberStatus): string {
     const map: Record<MemberStatus, string> = {
       ACTIVE:   'badge-active',

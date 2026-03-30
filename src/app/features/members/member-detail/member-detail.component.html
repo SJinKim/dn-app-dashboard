@@ -57,6 +57,9 @@
             {{ member()!.lastName }}{{ member()!.firstName }}
           </div>
           <div class="flex items-center gap-2 mt-1">
+            <span [class]="'status-badge ' + roleBadgeClass(member()!.role)">
+              {{ member()!.role ?? 'MEMBER' }}
+            </span>
             <span [class]="'status-badge ' + statusBadgeClass(member()!.memberStatus)">
               {{ member()!.memberStatus }}
             </span>

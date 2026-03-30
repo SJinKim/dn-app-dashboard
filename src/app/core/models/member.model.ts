@@ -26,6 +26,7 @@ export interface Member {
   city: string | null;
   registrationDate: string | null;
   memberStatus: MemberStatus;
+  role?: 'ADMIN' | 'MEMBER';
   churchRole: string | null;
   groupName: string | null;
   profileImageUrl: string | null;
