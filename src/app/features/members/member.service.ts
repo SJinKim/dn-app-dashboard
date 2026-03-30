@@ -17,6 +17,7 @@ export class MemberService {
   getMembers(params: {
     search?: string;
     status?: MemberStatus | null;
+    role?: 'ADMIN' | 'MEMBER' | null;
     page?: number;
     size?: number;
     sort?: string;
@@ -27,6 +28,7 @@ export class MemberService {
     };
     if (params.search?.trim()) qp['search'] = params.search.trim();
     if (params.status)         qp['status'] = params.status;
+    if (params.role)           qp['role']   = params.role;
     if (params.sort)           qp['sort']   = params.sort;
     return this.api.get<PageResponse<MemberSummary>>('/v1/members', qp);
   }

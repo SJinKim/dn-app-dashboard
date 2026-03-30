@@ -88,7 +88,7 @@ export class MembersListComponent implements OnInit {
     this.page = page;
     this.loading.set(true);
     this.memberService
-      .getMembers({ search: this.searchTerm, status: this.activeStatus(), page: this.page, size: this.size })
+      .getMembers({ search: this.searchTerm, status: this.activeStatus(), role: this.activeRole() ?? undefined, page: this.page, size: this.size })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => { this.members.set(res.content); this.totalRecords.set(res.totalElements); this.loading.set(false); },
