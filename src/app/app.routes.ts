@@ -1,3 +1,4 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { ShellComponent } from './shell/shell.component';
@@ -10,8 +11,9 @@ export const APP_ROUTES: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'members',
         pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/home/home.component').then(m => m.HomeComponent),
       },
       {
         path: 'members',
@@ -32,6 +34,6 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/members',
+    redirectTo: '/',
   },
 ];
