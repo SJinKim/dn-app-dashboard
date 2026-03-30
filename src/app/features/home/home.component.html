@@ -1,0 +1,126 @@
+<!-- src/app/features/home/home.component.html -->
+<div class="p-6 max-w-[1400px]">
+
+  <!-- Page title -->
+  <div class="mb-6">
+    <h1 class="text-[26px] font-extrabold text-primary tracking-tight">Liturgical Dashboard</h1>
+    <p class="text-[13px] text-tertiary mt-1">System-wide overview for the fiscal quarter.</p>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    @for (card of statCards(); track card.label) {
+      <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-neutral flex items-center justify-center">
+            <i [class]="card.icon + ' text-secondary text-[14px]'"></i>
+          </div>
+          <span [class]="'status-badge ' + card.badgeClass">{{ card.badge }}</span>
+        </div>
+        <div class="text-[9px] font-bold text-tertiary uppercase tracking-widest mb-1">{{ card.label }}</div>
+        <div class="text-[28px] font-extrabold text-primary tracking-tighter leading-none">{{ card.value }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+
+    <!-- Growth chart -->
+    <div class="col-span-2 bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+      <div class="text-[13px] font-bold text-primary tracking-tight mb-4">Growth Analytics</div>
+      <div style="height: 200px">
+        <p-chart type="line" [data]="chartData" [options]="chartOptions" height="200" />
+      </div>
+    </div>
+
+    <!-- Demographics -->
+    <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+      <div class="text-[13px] font-bold text-primary tracking-tight mb-4">Demographics</div>
+
+      <div class="mb-3">
+        <div class="flex justify-between text-[11px] font-medium mb-1">
+          <span class="text-secondary">Women</span>
+          <span class="font-bold text-primary">52%</span>
+        </div>
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-full bg-primary rounded-full" style="width: 52%"></div>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <div class="flex justify-between text-[11px] font-medium mb-1">
+          <span class="text-secondary">Men</span>
+          <span class="font-bold text-tertiary">48%</span>
+        </div>
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-full bg-tertiary rounded-full" style="width: 48%"></div>
+        </div>
+      </div>
+
+      <button
+        (click)="goToMembers()"
+        class="text-[11px] font-bold text-primary hover:text-primary-hover transition-colors tracking-tight"
+      >
+        Detailed Demographics Report →
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Recent activity table -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+      <div class="text-[13px] font-bold text-primary tracking-tight">Recent Activity</div>
+      <button
+        (click)="goToMembers()"
+        class="text-[11px] font-bold text-primary hover:underline tracking-tight"
+      >
+        View all →
+      </button>
+    </div>
+
+    <table class="w-full text-[11px]">
+      <thead>
+        <tr class="border-b border-gray-50">
+          <th class="text-left px-5 py-3 text-[9px] font-bold text-tertiary uppercase tracking-widest">Name</th>
+          <th class="text-left px-5 py-3 text-[9px] font-bold text-tertiary uppercase tracking-widest">Role</th>
+          <th class="text-left px-5 py-3 text-[9px] font-bold text-tertiary uppercase tracking-widest">Status</th>
+          <th class="text-left px-5 py-3 text-[9px] font-bold text-tertiary uppercase tracking-widest">Last Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr><td colspan="4" class="px-5 py-8 text-center text-tertiary">Loading...</td></tr>
+        }
+        @for (member of recentMembers(); track member.publicId) {
+          <tr
+            class="border-b border-gray-50 hover:bg-neutral cursor-pointer transition-colors"
+            (click)="goToMember(member.publicId)"
+          >
+            <td class="px-5 py-3 font-semibold text-gray-800 tracking-tight">
+              {{ member.lastName }}{{ member.firstName }}
+            </td>
+            <td class="px-5 py-3">
+              <span [class]="'status-badge ' + (member.role === 'ADMIN' ? 'badge-admin' : 'badge-member')">
+                {{ member.role ?? 'MEMBER' }}
+              </span>
+            </td>
+            <td class="px-5 py-3">
+              <span [class]="'status-badge ' + statusBadgeClass(member.memberStatus)">
+                {{ member.memberStatus }}
+              </span>
+            </td>
+            <td class="px-5 py-3 text-tertiary">
+              {{ member.updatedAt ? (member.updatedAt | date:'yyyy-MM-dd') : '—' }}
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr><td colspan="4" class="px-5 py-8 text-center text-tertiary">No recent activity.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>
