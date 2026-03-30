@@ -21,6 +21,7 @@
         [routerLink]="item.route"
         routerLinkActive="active-nav-item"
         [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+        [attr.aria-label]="item.label"
         class="nav-item relative flex items-center gap-2.5 px-5 py-2.5 text-[13px] font-medium text-secondary hover:bg-neutral transition-colors overflow-hidden whitespace-nowrap"
         [pTooltip]="collapsed() ? item.label : ''"
         tooltipPosition="right"
@@ -63,6 +64,7 @@
   <!-- Collapse toggle — vertically centered on right edge -->
   <button
     (click)="toggleCollapse()"
+    [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
     class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-secondary hover:text-primary transition-colors z-10 text-[10px]"
   >
     <i [class]="collapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"></i>

@@ -1,6 +1,6 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -13,19 +13,26 @@ interface NavItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, TooltipModule],
+  imports: [RouterModule, TooltipModule],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
   readonly auth = inject(AuthService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly collapsed = signal(
+    isPlatformBrowser(this.platformId) &&
     localStorage.getItem('sidebar-collapsed') === 'true'
   );
 
   readonly sidebarWidth = computed(() =>
     this.collapsed() ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-expanded)'
   );
+
+  readonly userInitials = computed(() => {
+    const name = this.auth.username();
+    return name ? name.slice(0, 2).toUpperCase() : 'AU';
+  });
 
   readonly navItems: NavItem[] = [
     { label: 'Home',       icon: 'pi pi-home',          route: '/'           },
@@ -36,14 +43,11 @@ export class SidebarComponent {
     { label: 'Settings',   icon: 'pi pi-cog',           route: '/settings'   },
   ];
 
-  get userInitials(): string {
-    const name = this.auth.username();
-    return name ? name.slice(0, 2).toUpperCase() : 'AU';
-  }
-
   toggleCollapse(): void {
     const next = !this.collapsed();
     this.collapsed.set(next);
-    localStorage.setItem('sidebar-collapsed', String(next));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('sidebar-collapsed', String(next));
+    }
   }
 }
