@@ -6,6 +6,8 @@ export interface MemberSummary {
   email: string | null;
   memberStatus: MemberStatus;
   groupName: string | null;
+  role?: 'ADMIN' | 'MEMBER';
+  updatedAt?: string;
 }
 
 /** Full detail DTO — used in detail + edit views */
