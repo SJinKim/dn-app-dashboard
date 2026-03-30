@@ -1,14 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { MemberService } from '../member.service';
 import {
@@ -23,13 +20,9 @@ import {
   selector: 'app-member-detail',
   standalone: true,
   imports: [
-    CommonModule,
-    CardModule,
     ButtonModule,
-    TagModule,
     ConfirmDialogModule,
     ToastModule,
-    ProgressSpinnerModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './member-detail.component.html',
@@ -40,19 +33,22 @@ export class MemberDetailComponent implements OnInit {
   private readonly router         = inject(Router);
   private readonly confirmService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef     = inject(DestroyRef);
 
   member  = signal<Member | null>(null);
   loading = signal(true);
 
   ngOnInit(): void {
     const publicId = this.route.snapshot.paramMap.get('publicId')!;
-    this.memberService.getMember(publicId).subscribe({
-      next:  m   => { this.member.set(m); this.loading.set(false); },
-      error: ()  => {
-        this.messageService.add({ severity: 'error', summary: '오류', detail: '회원 정보를 불러올 수 없습니다.' });
-        this.loading.set(false);
-      },
-    });
+    this.memberService.getMember(publicId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next:  m   => { this.member.set(m); this.loading.set(false); },
+        error: ()  => {
+          this.messageService.add({ severity: 'error', summary: '오류', detail: '회원 정보를 불러올 수 없습니다.' });
+          this.loading.set(false);
+        },
+      });
   }
 
   goToEdit(): void {
@@ -73,15 +69,17 @@ export class MemberDetailComponent implements OnInit {
       rejectLabel: '취소',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        this.memberService.deleteMember(this.member()!.publicId).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: '완료', detail: '삭제되었습니다.' });
-            setTimeout(() => this.router.navigate(['/members']), 1000);
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: '오류', detail: '삭제에 실패했습니다.' });
-          },
-        });
+        this.memberService.deleteMember(this.member()!.publicId)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.messageService.add({ severity: 'success', summary: '완료', detail: '삭제되었습니다.' });
+              setTimeout(() => this.router.navigate(['/members']), 1000);
+            },
+            error: () => {
+              this.messageService.add({ severity: 'error', summary: '오류', detail: '삭제에 실패했습니다.' });
+            },
+          });
       },
     });
   }
@@ -96,5 +94,19 @@ export class MemberDetailComponent implements OnInit {
       case 'INACTIVE': return 'warn';
       default:         return 'danger';
     }
+  }
+
+  statusBadgeClass(status: MemberStatus): string {
+    const map: Record<MemberStatus, string> = {
+      ACTIVE:   'badge-active',
+      INACTIVE: 'badge-inactive',
+      PENDING:  'badge-pending',
+      DELETED:  'badge-deleted',
+    };
+    return map[status] ?? '';
+  }
+
+  roleBadgeClass(role?: string | null): string {
+    return role === 'ADMIN' ? 'badge-admin' : 'badge-member';
   }
 }

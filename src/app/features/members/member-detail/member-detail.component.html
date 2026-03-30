@@ -1,74 +1,138 @@
-<div class="p-6 max-w-3xl mx-auto">
+<!-- src/app/features/members/member-detail/member-detail.component.html -->
+<div class="p-6 max-w-3xl">
+
+  <!-- Back + actions -->
+  <div class="flex items-center gap-3 mb-6">
+    <button
+      (click)="goBack()"
+      aria-label="Back to members list"
+      class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-secondary hover:text-primary hover:border-primary transition-colors"
+    >
+      <i class="pi pi-arrow-left text-[12px]"></i>
+    </button>
+    <h1 class="text-[22px] font-extrabold text-primary tracking-tight flex-1">
+      @if (!loading() && member()) {
+        {{ member()!.lastName }}{{ member()!.firstName }}
+        @if (member()!.discriminator) {
+          <span class="text-[14px] text-tertiary font-medium ml-2">({{ member()!.discriminator }})</span>
+        }
+      }
+    </h1>
+    @if (!loading() && member()) {
+      <div class="flex gap-2">
+        <button
+          (click)="goToEdit()"
+          class="flex items-center gap-2 h-9 px-4 bg-primary text-white rounded-lg text-[12px] font-bold hover:bg-primary-hover transition-colors tracking-tight"
+        >
+          <i class="pi pi-pencil text-[11px]"></i>
+          Edit
+        </button>
+        <button
+          (click)="confirmDelete($event)"
+          class="flex items-center gap-2 h-9 px-4 bg-red-50 text-red-600 border border-red-200 rounded-lg text-[12px] font-bold hover:bg-red-100 transition-colors tracking-tight"
+        >
+          <i class="pi pi-trash text-[11px]"></i>
+          Delete
+        </button>
+      </div>
+    }
+  </div>
+
   <!-- Loading -->
   @if (loading()) {
-    <div class="flex justify-center py-16">
-      <p-progressSpinner />
-    </div>
+    <div class="flex justify-center py-16 text-tertiary text-[13px]">Loading...</div>
   }
 
   <!-- Detail card -->
   @if (!loading() && member()) {
-    <div class="mb-4 flex items-center gap-3">
-      <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="goBack()" />
-      <h1 class="text-2xl font-bold text-gray-800">
-        {{ member()!.lastName }}{{ member()!.firstName }}
-        @if (member()!.discriminator) {
-          <span class="text-base text-gray-400 ml-1">({{ member()!.discriminator }})</span>
-        }
-      </h1>
-      <p-tag
-        [value]="statusLabel(member()!.memberStatus)"
-        [severity]="statusSeverity(member()!.memberStatus)"
-        class="ml-2"
-      />
-      <div class="ml-auto flex gap-2">
-        <p-button label="수정" icon="pi pi-pencil" (onClick)="goToEdit()" />
-        <p-button
-          label="삭제"
-          icon="pi pi-trash"
-          severity="danger"
-          [outlined]="true"
-          (onClick)="confirmDelete($event)"
-        />
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+
+      <!-- Avatar + name + badges -->
+      <div class="flex items-center gap-4 mb-6 pb-6 border-b border-gray-50">
+        <div class="w-14 h-14 rounded-full bg-primary text-white text-[18px] font-bold flex items-center justify-center flex-shrink-0">
+          {{ member()!.lastName.slice(0, 1) }}
+        </div>
+        <div>
+          <div class="text-[18px] font-extrabold text-primary tracking-tight">
+            {{ member()!.lastName }}{{ member()!.firstName }}
+          </div>
+          <div class="flex items-center gap-2 mt-1">
+            <span [class]="'status-badge ' + statusBadgeClass(member()!.memberStatus)">
+              {{ member()!.memberStatus }}
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <p-card>
-      <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-        <!-- 기본 정보 -->
-        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-2">기본 정보</div>
-        <div><span class="text-gray-500">이메일</span><p class="font-medium mt-0.5">{{ member()!.email ?? '—' }}</p></div>
-        <div><span class="text-gray-500">전화번호</span><p class="font-medium mt-0.5">{{ member()!.phoneNumber ?? '—' }}</p></div>
-        <div><span class="text-gray-500">성별</span><p class="font-medium mt-0.5">{{ genderLabel(member()!.gender) }}</p></div>
-        <div><span class="text-gray-500">생년월일</span><p class="font-medium mt-0.5">{{ member()!.birthDate ?? '—' }}</p></div>
+      <!-- Fields grid -->
+      <div class="grid grid-cols-2 gap-x-10 gap-y-4 text-[13px]">
 
-        <!-- 교회 정보 -->
-        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-4">교회 정보</div>
-        <div><span class="text-gray-500">세례</span><p class="font-medium mt-0.5">{{ baptismLabel(member()!.baptism) }}</p></div>
-        <div><span class="text-gray-500">직분</span><p class="font-medium mt-0.5">{{ member()!.churchRole ?? '—' }}</p></div>
-        <div><span class="text-gray-500">그룹</span><p class="font-medium mt-0.5">{{ member()!.groupName ?? '—' }}</p></div>
-        <div><span class="text-gray-500">등록일</span><p class="font-medium mt-0.5">{{ member()!.registrationDate ?? '—' }}</p></div>
+        <div class="col-span-2 text-[9px] font-bold text-tertiary uppercase tracking-widest pb-1 border-b border-gray-50">
+          Basic Info
+        </div>
 
-        <!-- 주소 -->
-        <div class="col-span-2 text-xs font-semibold uppercase text-gray-400 tracking-wider pt-4">주소</div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Email</div>
+          <div class="font-medium text-gray-800">{{ member()!.email ?? '—' }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Phone</div>
+          <div class="font-medium text-gray-800">{{ member()!.phoneNumber ?? '—' }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Gender</div>
+          <div class="font-medium text-gray-800">{{ genderLabel(member()!.gender) }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Date of Birth</div>
+          <div class="font-medium text-gray-800">{{ member()!.birthDate ?? '—' }}</div>
+        </div>
+
+        <div class="col-span-2 text-[9px] font-bold text-tertiary uppercase tracking-widest pb-1 border-b border-gray-50 mt-2">
+          Church Info
+        </div>
+
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Baptism</div>
+          <div class="font-medium text-gray-800">{{ baptismLabel(member()!.baptism) }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Church Role</div>
+          <div class="font-medium text-gray-800">{{ member()!.churchRole ?? '—' }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Group</div>
+          <div class="font-medium text-gray-800">{{ member()!.groupName ?? '—' }}</div>
+        </div>
+        <div>
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Registration Date</div>
+          <div class="font-medium text-gray-800">{{ member()!.registrationDate ?? '—' }}</div>
+        </div>
+
+        <div class="col-span-2 text-[9px] font-bold text-tertiary uppercase tracking-widest pb-1 border-b border-gray-50 mt-2">
+          Address
+        </div>
+
         <div class="col-span-2">
-          <span class="text-gray-500">주소</span>
-          <p class="font-medium mt-0.5">
+          <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Address</div>
+          <div class="font-medium text-gray-800">
             @if (member()!.street || member()!.city) {
               {{ member()!.street }} {{ member()!.zipCode }} {{ member()!.city }}
             } @else {
               —
             }
-          </p>
+          </div>
         </div>
+
       </div>
-    </p-card>
+    </div>
   }
 
   <!-- Not found -->
   @if (!loading() && !member()) {
-    <div class="text-center py-16 text-gray-400">회원 정보를 찾을 수 없습니다.</div>
+    <div class="text-center py-16 text-tertiary text-[13px]">Member not found.</div>
   }
+
 </div>
 
 <p-confirmDialog />
