@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, BehaviorSubject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
@@ -69,9 +69,37 @@ export class MembersListComponent implements OnInit {
   ];
 
   private readonly search$ = new Subject<string>();
+  private readonly loadTrigger$ = new BehaviorSubject<void>(undefined);
 
   ngOnInit(): void {
-    this.loadPage(0);
+    this.destroyRef.onDestroy(() => this.search$.complete());
+    this.destroyRef.onDestroy(() => this.loadTrigger$.complete());
+
+    this.loadTrigger$
+      .pipe(
+        switchMap(() =>
+          this.memberService.getMembers({
+            search: this.searchTerm,
+            status: this.activeStatus(),
+            role: this.activeRole() ?? undefined,
+            page: this.page,
+            size: this.size,
+          })
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: res => {
+          this.members.set(res.content);
+          this.totalRecords.set(res.totalElements);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load members.' });
+          this.loading.set(false);
+        },
+      });
+
     this.loadPendingCount();
     this.search$
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
@@ -87,13 +115,7 @@ export class MembersListComponent implements OnInit {
   loadPage(page: number): void {
     this.page = page;
     this.loading.set(true);
-    this.memberService
-      .getMembers({ search: this.searchTerm, status: this.activeStatus(), role: this.activeRole() ?? undefined, page: this.page, size: this.size })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: res => { this.members.set(res.content); this.totalRecords.set(res.totalElements); this.loading.set(false); },
-        error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not load members.' }); this.loading.set(false); },
-      });
+    this.loadTrigger$.next();
   }
 
   onSearch(term: string): void { this.search$.next(term); }
