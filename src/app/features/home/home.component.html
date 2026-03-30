@@ -93,32 +93,32 @@
       <tbody>
         @if (loading()) {
           <tr><td colspan="4" class="px-5 py-8 text-center text-tertiary">Loading...</td></tr>
-        }
-        @for (member of recentMembers(); track member.publicId) {
-          <tr
-            class="border-b border-gray-50 hover:bg-neutral cursor-pointer transition-colors"
-            (click)="goToMember(member.publicId)"
-          >
-            <td class="px-5 py-3 font-semibold text-gray-800 tracking-tight">
-              {{ member.lastName }}{{ member.firstName }}
-            </td>
-            <td class="px-5 py-3">
-              <span [class]="'status-badge ' + (member.role === 'ADMIN' ? 'badge-admin' : 'badge-member')">
-                {{ member.role ?? 'MEMBER' }}
-              </span>
-            </td>
-            <td class="px-5 py-3">
-              <span [class]="'status-badge ' + statusBadgeClass(member.memberStatus)">
-                {{ member.memberStatus }}
-              </span>
-            </td>
-            <td class="px-5 py-3 text-tertiary">
-              {{ member.updatedAt ? (member.updatedAt | date:'yyyy-MM-dd') : '—' }}
-            </td>
-          </tr>
-        }
-        @empty {
-          <tr><td colspan="4" class="px-5 py-8 text-center text-tertiary">No recent activity.</td></tr>
+        } @else {
+          @for (member of recentMembers(); track member.publicId) {
+            <tr
+              class="border-b border-gray-50 hover:bg-neutral cursor-pointer transition-colors"
+              (click)="goToMember(member.publicId)"
+            >
+              <td class="px-5 py-3 font-semibold text-gray-800 tracking-tight">
+                {{ member.lastName }}{{ member.firstName }}
+              </td>
+              <td class="px-5 py-3">
+                <span [class]="'status-badge ' + (member.role === 'ADMIN' ? 'badge-admin' : 'badge-member')">
+                  {{ member.role ?? 'MEMBER' }}
+                </span>
+              </td>
+              <td class="px-5 py-3">
+                <span [class]="'status-badge ' + statusBadgeClass(member.memberStatus)">
+                  {{ member.memberStatus }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-tertiary">
+                {{ member.updatedAt ? (member.updatedAt | date:'yyyy-MM-dd') : '—' }}
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="px-5 py-8 text-center text-tertiary">No recent activity.</td></tr>
+          }
         }
       </tbody>
     </table>
