@@ -19,6 +19,7 @@ export class MemberService {
     status?: MemberStatus | null;
     page?: number;
     size?: number;
+    sort?: string;
   }): Observable<PageResponse<MemberSummary>> {
     const qp: Record<string, string | number | boolean> = {
       page: params.page ?? 0,
@@ -26,6 +27,7 @@ export class MemberService {
     };
     if (params.search?.trim()) qp['search'] = params.search.trim();
     if (params.status)         qp['status'] = params.status;
+    if (params.sort)           qp['sort']   = params.sort;
     return this.api.get<PageResponse<MemberSummary>>('/v1/members', qp);
   }
 
