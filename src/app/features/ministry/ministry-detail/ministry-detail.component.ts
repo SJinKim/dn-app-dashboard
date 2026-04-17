@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -42,6 +43,7 @@ export class MinistryDetailComponent implements OnInit {
   private readonly router          = inject(Router);
   private readonly confirmService  = inject(ConfirmationService);
   private readonly messageService  = inject(MessageService);
+  private readonly destroyRef      = inject(DestroyRef);
 
   ministry      = signal<Ministry | null>(null);
   registrations = signal<RegistrationDto[]>([]);
@@ -58,7 +60,7 @@ export class MinistryDetailComponent implements OnInit {
   }
 
   private loadMinistry(): void {
-    this.ministryService.getMinistry(this.publicId).subscribe({
+    this.ministryService.getMinistry(this.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: m => { this.ministry.set(m); this.loading.set(false); },
       error: () => {
         this.messageService.add({ severity: 'error', summary: '오류', detail: '부서 정보를 불러올 수 없습니다.' });
@@ -70,7 +72,7 @@ export class MinistryDetailComponent implements OnInit {
   loadRegistrations(): void {
     this.regsLoading.set(true);
     const period = this.periodFilter.trim() || undefined;
-    this.ministryService.getRegistrations(this.publicId, period).subscribe({
+    this.ministryService.getRegistrations(this.publicId, period).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: list => { this.registrations.set(list); this.regsLoading.set(false); },
       error: () => {
         this.messageService.add({ severity: 'error', summary: '오류', detail: '등록 목록을 불러올 수 없습니다.' });
@@ -96,7 +98,7 @@ export class MinistryDetailComponent implements OnInit {
   }
 
   private removeRegistration(reg: RegistrationDto): void {
-    this.ministryService.removeRegistration(this.publicId, reg.publicId).subscribe({
+    this.ministryService.removeRegistration(this.publicId, reg.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: '완료', detail: '삭제되었습니다.' });
         this.loadRegistrations();

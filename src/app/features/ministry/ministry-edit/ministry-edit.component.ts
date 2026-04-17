@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -37,6 +38,7 @@ export class MinistryEditComponent implements OnInit {
   private readonly route           = inject(ActivatedRoute);
   private readonly router          = inject(Router);
   private readonly messageService  = inject(MessageService);
+  private readonly destroyRef      = inject(DestroyRef);
 
   isEdit   = false;
   loading  = signal(false);
@@ -59,7 +61,7 @@ export class MinistryEditComponent implements OnInit {
 
     if (this.isEdit) {
       this.loading.set(true);
-      this.ministryService.getMinistry(this.publicId).subscribe({
+      this.ministryService.getMinistry(this.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: m => { this.fillForm(m); this.loading.set(false); },
         error: () => {
           this.messageService.add({ severity: 'error', summary: '오류', detail: '부서 정보를 불러올 수 없습니다.' });
@@ -96,7 +98,7 @@ export class MinistryEditComponent implements OnInit {
       if (this.form.imageUrl.trim())        req['imageUrl']        = this.form.imageUrl.trim();
       if (this.form.leaderPublicId.trim())  req['leaderPublicId']  = this.form.leaderPublicId.trim();
 
-      this.ministryService.updateMinistry(this.publicId, req).subscribe({
+      this.ministryService.updateMinistry(this.publicId, req).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.messageService.add({ severity: 'success', summary: '완료', detail: '수정되었습니다.' });
           setTimeout(() => this.router.navigate(['/ministry', this.publicId]), 800);
@@ -115,7 +117,7 @@ export class MinistryEditComponent implements OnInit {
       if (this.form.imageUrl.trim())        req['imageUrl']        = this.form.imageUrl.trim();
       if (this.form.leaderPublicId.trim())  req['leaderPublicId']  = this.form.leaderPublicId.trim();
 
-      this.ministryService.createMinistry(req as never).subscribe({
+      this.ministryService.createMinistry(req as never).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: m => {
           this.messageService.add({ severity: 'success', summary: '완료', detail: '부서가 생성되었습니다.' });
           setTimeout(() => this.router.navigate(['/ministry', m.publicId]), 800);

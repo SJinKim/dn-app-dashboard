@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -40,6 +41,7 @@ export class MinistryListComponent implements OnInit {
   private readonly router          = inject(Router);
   private readonly confirmService  = inject(ConfirmationService);
   private readonly messageService  = inject(MessageService);
+  private readonly destroyRef      = inject(DestroyRef);
 
   ministries   = signal<MinistrySummary[]>([]);
   loading      = signal(false);
@@ -57,7 +59,7 @@ export class MinistryListComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.ministryService.getMinistries(this.activeFilter()).subscribe({
+    this.ministryService.getMinistries(this.activeFilter()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: list => { this.ministries.set(list); this.loading.set(false); },
       error: ()  => {
         this.messageService.add({ severity: 'error', summary: '오류', detail: '부서 목록을 불러올 수 없습니다.' });
@@ -93,7 +95,7 @@ export class MinistryListComponent implements OnInit {
   }
 
   private deactivate(m: MinistrySummary): void {
-    this.ministryService.deactivateMinistry(m.publicId).subscribe({
+    this.ministryService.deactivateMinistry(m.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: '완료', detail: '비활성화되었습니다.' });
         this.load();

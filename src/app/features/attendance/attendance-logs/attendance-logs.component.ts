@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -33,6 +34,7 @@ export class AttendanceLogsComponent implements OnInit {
   private readonly route      = inject(ActivatedRoute);
   private readonly router     = inject(Router);
   private readonly messageSvc = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   definitionPublicId = '';
   definitionTitle    = signal('출석 로그');
@@ -59,7 +61,7 @@ export class AttendanceLogsComponent implements OnInit {
       params.to   = this.toIsoDate(this.dateRange[1]);
     }
 
-    this.service.getLogs(params).subscribe({
+    this.service.getLogs(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: logs => {
         this.logs.set(logs);
         if (logs.length > 0 && this.definitionTitle() === '출석 로그') {

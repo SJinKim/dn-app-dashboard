@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -46,6 +47,7 @@ export class AttendanceDefinitionsComponent implements OnInit {
   private readonly router       = inject(Router);
   private readonly confirmSvc   = inject(ConfirmationService);
   private readonly messageSvc   = inject(MessageService);
+  private readonly destroyRef   = inject(DestroyRef);
 
   definitions    = signal<DefinitionDto[]>([]);
   loading        = signal(false);
@@ -74,7 +76,7 @@ export class AttendanceDefinitionsComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.service.getDefinitions(false).subscribe({
+    this.service.getDefinitions(false).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: defs => {
         this.definitions.set(defs);
         this.loading.set(false);
@@ -104,7 +106,7 @@ export class AttendanceDefinitionsComponent implements OnInit {
       dayOfWeek: this.createDayOfWeek,
       windowStart: this.createWindowStart,
       windowEnd: this.createWindowEnd,
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.messageSvc.add({ severity: 'success', summary: '완료', detail: '출석 정의가 생성되었습니다.' });
         this.resetCreateForm();
@@ -136,7 +138,7 @@ export class AttendanceDefinitionsComponent implements OnInit {
       windowStart: this.editWindowStart || undefined,
       windowEnd:   this.editWindowEnd || undefined,
       isActive:    this.editIsActive,
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.messageSvc.add({ severity: 'success', summary: '완료', detail: '수정되었습니다.' });
         this.showEditDialog = false;
@@ -163,7 +165,7 @@ export class AttendanceDefinitionsComponent implements OnInit {
   }
 
   private deactivate(def: DefinitionDto): void {
-    this.service.deactivateDefinition(def.publicId).subscribe({
+    this.service.deactivateDefinition(def.publicId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.messageSvc.add({ severity: 'success', summary: '완료', detail: '비활성화되었습니다.' });
         this.load();
