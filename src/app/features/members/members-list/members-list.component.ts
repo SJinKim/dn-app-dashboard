@@ -1,7 +1,7 @@
 // src/app/features/members/members-list/members-list.component.ts
 import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, switchMap, BehaviorSubject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,13 +39,14 @@ type RoleFilter   = 'ADMIN' | 'MEMBER' | null;
 export class MembersListComponent implements OnInit {
   private readonly memberService  = inject(MemberService);
   private readonly router         = inject(Router);
+  private readonly route          = inject(ActivatedRoute);
   private readonly confirmService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef     = inject(DestroyRef);
 
   members      = signal<MemberSummary[]>([]);
   totalRecords = signal(0);
-  pendingCount = signal(0);
+  pendingCount = this.memberService.pendingCount;
   loading      = signal(false);
   searchTerm   = '';
   activeStatus = signal<StatusFilter>(null);
@@ -75,6 +76,15 @@ export class MembersListComponent implements OnInit {
     this.destroyRef.onDestroy(() => this.search$.complete());
     this.destroyRef.onDestroy(() => this.loadTrigger$.complete());
 
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        const status = params.get('status') as StatusFilter;
+        if (status && status !== this.activeStatus()) {
+          this.activeStatus.set(status);
+        }
+      });
+
     this.loadTrigger$
       .pipe(
         switchMap(() =>
@@ -100,16 +110,10 @@ export class MembersListComponent implements OnInit {
         },
       });
 
-    this.loadPendingCount();
+    this.memberService.refreshPendingCount();
     this.search$
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(term => { this.searchTerm = term; this.loadPage(0); });
-  }
-
-  private loadPendingCount(): void {
-    this.memberService.getMembers({ status: 'PENDING', size: 1 })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: res => this.pendingCount.set(res.totalElements) });
   }
 
   loadPage(page: number): void {
@@ -152,7 +156,7 @@ export class MembersListComponent implements OnInit {
     this.memberService.approveMember(member.publicId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => { this.messageService.add({ severity: 'success', summary: 'Done', detail: 'Member approved.' }); this.loadPage(this.page); this.loadPendingCount(); },
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Done', detail: 'Member approved.' }); this.loadPage(this.page); this.memberService.refreshPendingCount(); },
         error: () => { this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Approval failed.' }); },
       });
   }

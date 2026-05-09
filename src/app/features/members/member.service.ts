@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { PageResponse } from '../../core/models/api-response.model';
@@ -13,6 +13,16 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MemberService {
   private readonly api = inject(ApiService);
+
+  /** Shared, real-time count of members in PENDING status. */
+  readonly pendingCount = signal(0);
+
+  /** Refetches the pending count. Safe to call from anywhere after a state change. */
+  refreshPendingCount(): void {
+    this.getMembers({ status: 'PENDING', size: 1 }).subscribe({
+      next: res => this.pendingCount.set(res.totalElements),
+    });
+  }
 
   getMembers(params: {
     search?: string;
