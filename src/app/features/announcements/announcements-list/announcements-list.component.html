@@ -1,0 +1,137 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">공지 관리</h1>
+    <p-button
+      label="공지 추가"
+      icon="pi pi-plus"
+      (onClick)="showCreate.set(!showCreate())"
+    />
+  </div>
+
+  <!-- Inline Create Form -->
+  @if (showCreate()) {
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">새 공지</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="flex flex-col gap-1 sm:col-span-2">
+          <label class="text-sm text-gray-600">제목</label>
+          <input
+            pInputText
+            type="text"
+            placeholder="공지 제목"
+            [(ngModel)]="createTitle"
+            maxlength="200"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1 sm:col-span-2">
+          <label class="text-sm text-gray-600">내용</label>
+          <textarea
+            pTextarea
+            rows="4"
+            placeholder="공지 내용"
+            [(ngModel)]="createBody"
+          ></textarea>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">분류</label>
+          <p-select
+            [options]="categoryOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="분류 선택"
+            [(ngModel)]="createCategory"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 sm:mt-6">
+          <p-checkbox
+            [(ngModel)]="createIsPinned"
+            [binary]="true"
+            inputId="createIsPinned"
+          />
+          <label for="createIsPinned" class="text-sm text-gray-600">상단 고정</label>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">시작 일시</label>
+          <p-datepicker
+            [(ngModel)]="createStartAt"
+            [showTime]="true"
+            [showIcon]="true"
+            dateFormat="yy-mm-dd"
+            styleClass="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-600">종료 일시 (선택)</label>
+          <p-datepicker
+            [(ngModel)]="createEndAt"
+            [showTime]="true"
+            [showIcon]="true"
+            dateFormat="yy-mm-dd"
+            styleClass="w-full"
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <p-button label="저장" icon="pi pi-check" (onClick)="onCreateSubmit()" />
+        <p-button
+          label="취소"
+          icon="pi pi-times"
+          severity="secondary"
+          [text]="true"
+          (onClick)="showCreate.set(false)"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- Announcements Table -->
+  <p-table
+    [value]="announcements()"
+    [loading]="loading()"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>제목</th>
+        <th>분류</th>
+        <th>시작</th>
+        <th>종료</th>
+        <th>상태</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td class="font-medium">{{ item.title }}</td>
+        <td>{{ categoryLabel(item.category) }}</td>
+        <td class="text-gray-500">{{ formatDateTime(item.startAt) }}</td>
+        <td class="text-gray-500">{{ formatDateTime(item.endAt) }}</td>
+        <td>
+          @if (item.isPinned) {
+            <p-tag value="고정" severity="warn" icon="pi pi-thumbtack" />
+          } @else {
+            <p-tag value="일반" severity="secondary" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8 text-gray-400">
+          공지가 없습니다.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-toast />
