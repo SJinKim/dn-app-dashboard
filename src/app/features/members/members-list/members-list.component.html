@@ -10,15 +10,6 @@
   <!-- Filters row -->
   <div class="flex items-center gap-3 mb-5">
     <p-select
-      [options]="roleOptions"
-      optionLabel="label"
-      optionValue="value"
-      [ngModel]="activeRole()"
-      (ngModelChange)="onRoleChange($event)"
-      styleClass="h-9 text-[12px]"
-      placeholder="All Roles"
-    />
-    <p-select
       [options]="statusOptions"
       optionLabel="label"
       optionValue="value"
@@ -26,6 +17,15 @@
       (ngModelChange)="onStatusChange($event)"
       styleClass="h-9 text-[12px]"
       placeholder="All Status"
+    />
+    <p-select
+      [options]="baptismOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="activeBaptism()"
+      (ngModelChange)="onBaptismChange($event)"
+      styleClass="h-9 text-[12px]"
+      placeholder="All Baptism"
     />
     <div class="flex-1 flex items-center gap-2 h-9 bg-white border border-gray-200 rounded-lg px-3">
       <i class="pi pi-search text-tertiary text-[12px]"></i>
@@ -102,7 +102,7 @@
 
           <!-- Baptism -->
           <td class="px-4 py-3 text-[12px] text-secondary">
-            {{ member.baptism ?? '—' }}
+            {{ baptismLabel(member.baptism) }}
           </td>
 
           <!-- Last Active -->

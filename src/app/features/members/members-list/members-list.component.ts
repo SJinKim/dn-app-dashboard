@@ -15,10 +15,11 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { MemberService } from '../member.service';
-import { MemberSummary, MemberStatus } from '../../../core/models/member.model';
+import { MemberSummary, MemberStatus, Baptism, BAPTISM_LABELS } from '../../../core/models/member.model';
 
-type StatusFilter = MemberStatus | null;
-type RoleFilter   = 'ADMIN' | 'MEMBER' | null;
+type StatusFilter  = MemberStatus | null;
+type RoleFilter    = 'ADMIN' | 'MEMBER' | null;
+type BaptismFilter = Baptism | null;
 
 @Component({
   selector: 'app-members-list',
@@ -49,8 +50,9 @@ export class MembersListComponent implements OnInit {
   pendingCount = this.memberService.pendingCount;
   loading      = signal(false);
   searchTerm   = '';
-  activeStatus = signal<StatusFilter>(null);
-  activeRole   = signal<RoleFilter>(null);
+  activeStatus  = signal<StatusFilter>(null);
+  activeRole    = signal<RoleFilter>(null);
+  activeBaptism = signal<BaptismFilter>(null);
 
   page = 0;
   size = 20;
@@ -67,6 +69,12 @@ export class MembersListComponent implements OnInit {
     { label: 'Inactive',   value: 'INACTIVE'},
     { label: 'Pending',    value: 'PENDING' },
     { label: 'Deleted',    value: 'DELETED' },
+  ];
+
+  readonly baptismOptions = [
+    { label: 'All Baptism', value: null as Baptism | null },
+    ...(Object.entries(BAPTISM_LABELS) as [Baptism, string][])
+      .map(([value, label]) => ({ label, value })),
   ];
 
   private readonly search$ = new Subject<string>();
@@ -92,6 +100,7 @@ export class MembersListComponent implements OnInit {
             search: this.searchTerm,
             status: this.activeStatus(),
             role: this.activeRole() ?? undefined,
+            baptism: this.activeBaptism() ?? undefined,
             page: this.page,
             size: this.size,
           })
@@ -100,7 +109,7 @@ export class MembersListComponent implements OnInit {
       )
       .subscribe({
         next: res => {
-          this.members.set(res.content);
+          this.members.set(this.sortByKoreanName(res.content));
           this.totalRecords.set(res.totalElements);
           this.loading.set(false);
         },
@@ -124,8 +133,9 @@ export class MembersListComponent implements OnInit {
 
   onSearch(term: string): void { this.search$.next(term); }
 
-  onStatusChange(value: StatusFilter): void { this.activeStatus.set(value); this.loadPage(0); }
-  onRoleChange(value: RoleFilter): void     { this.activeRole.set(value);   this.loadPage(0); }
+  onStatusChange(value: StatusFilter): void   { this.activeStatus.set(value);  this.loadPage(0); }
+  onRoleChange(value: RoleFilter): void       { this.activeRole.set(value);    this.loadPage(0); }
+  onBaptismChange(value: BaptismFilter): void { this.activeBaptism.set(value); this.loadPage(0); }
   showPendingOnly(): void                   { this.activeStatus.set('PENDING'); this.loadPage(0); }
 
   onPageChange(event: TableLazyLoadEvent): void {
@@ -145,7 +155,7 @@ export class MembersListComponent implements OnInit {
       target: event.target as EventTarget,
       message: `Approve ${member.lastName}${member.firstName}?`,
       header: 'Approve Member',
-      icon: 'pi pi-check-circle',
+      acceptIcon: 'pi pi-check-circle',
       acceptLabel: 'Approve',
       rejectLabel: 'Cancel',
       accept: () => this.approveMember(member),
@@ -170,4 +180,15 @@ export class MembersListComponent implements OnInit {
 
   showingFrom(): number { return this.page * this.size + 1; }
   showingTo(): number   { return Math.min((this.page + 1) * this.size, this.totalRecords()); }
+
+  baptismLabel(b?: Baptism | null): string {
+    return b ? BAPTISM_LABELS[b] : '—';
+  }
+
+  private sortByKoreanName(list: MemberSummary[]): MemberSummary[] {
+    const collator = new Intl.Collator('ko', { sensitivity: 'base' });
+    return [...list].sort((a, b) =>
+      collator.compare(`${a.lastName}${a.firstName}`, `${b.lastName}${b.firstName}`),
+    );
+  }
 }
